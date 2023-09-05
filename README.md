@@ -1,5 +1,5 @@
 # HR-Employee-Projecct
-# HR-Dashboard-MySQL-PowerBI
+# HR-Dashboard-MS SQL Server-PowerBI
 
 
 **Data Cleaning & Analysis** - MS SQL Server
