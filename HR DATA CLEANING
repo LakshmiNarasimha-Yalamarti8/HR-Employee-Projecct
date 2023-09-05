@@ -1,0 +1,105 @@
+
+# DATA CLEANING
+
+
+-- To view the imported Data
+Select * from Dbo.[Human Resources]
+
+
+-- Change clmn name id ti Emp_Id
+exec sp_rename '[Human Resources].id','Emp_Id'
+
+
+-- birthdate is  of String @Nvarchar(20) initially 
+-- Converting Date field to Standard  Date  format i.e. MM-dd-yyyy from MM/dd/yyyy 
+update  Dbo.[Human Resources]
+set birthdate = case
+				when birthdate   like '%/%'
+				then  format(CAST(birthdate AS DATE),'MM-dd-yyyy')
+				else null 
+				end
+			
+-- changing  datatype of date field from string to  date
+Alter table  Dbo.[Human Resources]
+Alter column birthdate date
+
+----------------------------------------------------------------------------------------------------------
+/*
+
+/*
+IF we need date field as MM/dd/yyyy
+Check Datatype , If it is in Date/Datetime Then change datatype to string
+*/
+			
+-- changing  datatype of date field from string to  date
+Alter table  Dbo.[Human Resources]
+
+Alter column birthdate Nvarchar(20) 
+
+-- birthdate is  of String datatype  @Nvarchar(20) initially 
+-- Converting Date field to Standard  Date  format i.e. MM-dd-yyyy from MM/dd/yyyy 
+update  Dbo.[Human Resources]
+set birthdate = case
+				when birthdate   like '%/%'
+				then  format(CAST(birthdate AS DATE),'MM/dd/yyyy')
+				else null 
+				end
+*/
+---------------------------------------------------------------------------------------------------------------------------
+
+-- # Hiredate
+update  Dbo.[Human Resources]
+set Hire_date = case
+				when Hire_date   like '%/%'
+				then  format(CAST(Hire_date AS DATE),'MM-dd-yyyy')
+				else null 
+				end 
+			
+-- changing  datatype of date field from string to  date
+Alter table  Dbo.[Human Resources]
+Alter column Hire_date date
+
+-- # termdate
+-- 0000-00-00 00:00:00 UTC
+
+ALTER TABLE Dbo.[Human Resources]
+ADD  Term_Date Date
+
+
+update  Dbo.[Human Resources]
+set Term_Date = 
+  SUBSTRING(termdate,1,10)
+  WHERE TERMDATE IS NOT NULL
+------------------------------------------------
+ -- # Age Column 
+ALTER TABLE Dbo.[Human Resources]
+ADD  AGE INT
+
+
+update  Dbo.[Human Resources]
+set AGE = 
+  DATEDIFF(YEAR,birthdate,GETDATE())
+  
+
+SELECT birthdate,AGE FROM Dbo.[Human Resources]
+ORDER BY 2 DESC
+-----------------------------------------------------------------------------
+-- #EmployeeDuration
+
+ALTER TABLE Dbo.[Human Resources]
+ADD Emp_Duration INT
+
+
+update  Dbo.[Human Resources]
+set Emp_Duration = 
+  DATEDIFF(DAY,hire_date,term_date)
+WHERE Term_Date<=GETDATE()
+
+
+
+  
+
+
+
+
+
