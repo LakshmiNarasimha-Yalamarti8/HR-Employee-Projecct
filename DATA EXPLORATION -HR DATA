@@ -1,0 +1,120 @@
+
+/*
+What is the gender breakdown of employees in the company?
+What is the race/ethnicity breakdown of employees in the company?
+What is the age distribution of employees in the company?
+How many employees work at headquarters versus remote locations?
+What is the average length of employment for employees who have been terminated?
+How does the gender distribution vary across departments and job titles?
+What is the distribution of job titles across the company?
+What is the distribution of departments across the company?
+What is the distribution of employees across locations by state?
+Which department has the highest TERMINATION RATE ?
+How has the company's employee count changed over time based on hire and term dates?
+What is the tenure distribution for each department?
+*/
+SELECT * FROM  Dbo.[Human Resources]
+
+-- What is the gender breakdown of employees in the company?
+SELECT gender,COUNT(*) AS EMPLOYEECOUNT FROM  Dbo.[Human Resources]
+GROUP BY gender
+
+-- What is the race/ethnicity breakdown of employees in the company?
+SELECT RACE,COUNT(*) AS EMPLOYEECOUNT FROM  Dbo.[Human Resources]
+GROUP BY RACE
+
+-- What is the age distribution of employees in the company?
+SELECT AGE,COUNT(*) AS EMPLOYEECOUNT FROM  Dbo.[Human Resources]
+GROUP BY AGE
+order by 1 
+
+;with cte as (
+SELECT CASE WHEN AGE>=18 AND AGE<25 THEN '18-25' 
+		 WHEN AGE>=26 AND AGE<35 THEN '26-35' 
+		 WHEN AGE>=36 AND AGE<55 THEN '36-55' 
+		 WHEN AGE>=56 AND AGE<75 THEN '55-75' 
+		 ELSE  '75+'
+		 END AS AGE_GROUP  
+		FROM  Dbo.[Human Resources]
+		)
+		select AGE_GROUP ,COUNT(*) AS COUNT  from cte
+		GROUP BY AGE_GROUP
+		order by 1 
+-- How many employees work at headquarters versus remote locations?
+
+SELECT location,COUNT(*) AS EMPLOYEECOUNT FROM  Dbo.[Human Resources]
+GROUP BY location
+-- What is the average length of employment for employees who have been terminated?
+
+SELECT AVG(Emp_Duration)/365 average_length_of_employment 
+FROM  Dbo.[Human Resources]
+WHERE Emp_Duration IS NOT NULL
+
+
+--  How does the gender distribution vary across departments and job titles?
+
+SELECT gender,department,jobtitle,COUNT(*) AS EMPLOYEECOUNT FROM  Dbo.[Human Resources]
+GROUP BY gender,department,jobtitle
+
+--  What is the distribution of job titles across the company?
+
+SELECT gender,jobtitle,COUNT(*) AS EMPLOYEECOUNT FROM  Dbo.[Human Resources]
+GROUP BY jobtitle,gender
+
+-- --  What is the distribution of job departments across the company?
+
+SELECT gender,department,COUNT(*) AS EMPLOYEECOUNT FROM  Dbo.[Human Resources]
+GROUP BY department,gender
+
+--  What is the distribution of employees across locations by state?
+
+SELECT location_state,COUNT(*) AS EMPLOYEECOUNT FROM  Dbo.[Human Resources]
+GROUP BY location_state
+
+-- Which department has the highest TERMINATION RATE ?
+;WITH CTE  
+AS (
+SELECT department,COUNT(*) AS EMPLOYEECOUNT 
+, SUM(CASE WHEN TERMDATE IS NOT NULL AND TERMDATE<=GETDATE() THEN 1 ELSE 0 END) AS TERMINATION_COUNT
+--, TERMINATION_COUNT/EMPLOYEECOUNT AS  TERMINATION_RATE 
+FROM  Dbo.[Human Resources]
+GROUP BY department
+)
+SELECT *
+, FORMAT( ((CAST(TERMINATION_COUNT AS DECIMAL(10,2))/CAST(EMPLOYEECOUNT AS DECIMAL(10,2))) *100 ),'N2')
+AS  TERMINATION_RATE FROM CTE
+ORDER BY 4 DESC
+
+
+
+
+-- How has the company's employee count changed over time based on hire and term dates?
+;WITH CTE AS
+(
+SELECT  DATEPART(YEAR,hire_date) AS YEARs,
+COUNT(hire_date) AS EMPLOYEECOUNT 
+, SUM(CASE WHEN TERMDATE IS NOT NULL AND TERMDATE<=GETDATE() THEN 1 ELSE 0 END) AS TERMINATION_COUNT
+FROM  Dbo.[Human Resources]
+GROUP BY YEAR(hire_date)
+)
+,CTE1
+AS (
+SELECT *,EMPLOYEECOUNT-TERMINATION_COUNT AS NETCHANGE FROM CTE
+)
+,CTE2 
+AS (
+SELECT *, 
+FORMAT( ((CAST(NETCHANGE AS DECIMAL(10,2))/CAST(EMPLOYEECOUNT AS DECIMAL(10,2))) *100 ) ,'N2')
+AS NETPERCENTAGE
+,FORMAT( ((CAST(TERMINATION_COUNT AS DECIMAL(10,2))/CAST(EMPLOYEECOUNT AS DECIMAL(10,2))) *100 ),'N2') 
+AS TERMINATION_PERCENTAGE
+FROM CTE1
+)
+SELECT * FROM CTE2 
+ORDER BY 1 DESC 
+--   What is the tenure distribution for each department?
+
+SELECT department,AVG(Emp_Duration)/365 as distribution 
+FROM  Dbo.[Human Resources]
+WHERE Emp_Duration IS NOT NULL
+GROUP BY department
